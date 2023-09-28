@@ -1,80 +1,84 @@
 <template>
     <body>
         <div id="container">
-            <div id="main-box2">
-                <div class="first-box">
-                    <div class="title">
-                        <h1>Junte-se a nossa legião de apostadores.</h1>
-                    </div>
-                    <div id="login-button">
-                        <button  @click="callRegister">Cadastrar-se</button>
-                    </div>
+            <Transition name="slide-fade">
+                <div v-if="showL" id="login-box">
+                    <div class="first-box" >
+                        <div class="title">
+                            <h1>Junte-se a nossa legião de apostadores.</h1>
+                        </div>
+                        <div id="login-button">
+                            <button @click="showRegister">Cadastrar-se</button>
+                        </div>
 
-                </div>
-                <div class="second-box">
-                    <div class="title">
-                        <h1>Login</h1>
                     </div>
-                    <form action="" class="form-info">
+                    <div class="second-box">
+                        <div class="title">
+                            <h1>Login</h1>
+                        </div>
+                        <form action="" class="form-info">
 
-                        <div class="input-container">
-                            <input id="usermail" type="email" placeholder="E-mail para contato">
-                        </div>
-                        <div class="input-container">
-                            <input id="userpassword" type="password" placeholder="Senha de acesso">
-                        </div>
-                        <div class="input-submit">
-                            <input class="submit-button" type="submit" value="Entrar">
-                        </div>
-                    </form>
+                            <div class="input-container">
+                                <input id="usermail" type="email" placeholder="E-mail para contato">
+                            </div>
+                            <div class="input-container">
+                                <input id="userpassword" type="password" placeholder="Senha de acesso">
+                            </div>
+                            <div class="input-submit">
+                                <input class="submit-button" type="submit" value="Entrar">
+                            </div>
+                        </form>
+                    </div>
                 </div>
-            </div>
-            <div id="main-box">
-                <div class="first-box">
-                    <div class="title">
-                        <h1>Bem vindo de Volta!</h1>
+            </Transition>
+            <Transition name="slide-fade">
+                <div v-if="showR" id="register-box">
+                    <div class="first-box" >
+                        <div class="title">
+                            <h1>Bem vindo de Volta!</h1>
+                        </div>
+                        <div id="description">
+                            <p>Para entrar em sua conta, forneça suas informações de cadastro clicando no botão abaixo.</p>
+                        </div>
+                        <div id="login-button">
+                            <button @click="showLogin">Entrar</button>
+                        </div>
                     </div>
-                    <div id="description">
-                        <p>Para entrar em sua conta, forneça suas informações de cadastro clicando no botão abaixo.</p>
+                    <div class="second-box">
+                        <div class="title">
+                            <h1>Crie a sua conta</h1>
+                        </div>
+                        <form action="" class="form-info">
+                            <div class="input-container">
+                                <input id="usernameregister" type="text" placeholder="Nome completo">
+                            </div>
+                            <div class="input-container">
+                                <input id="usermailregister" type="email" placeholder="E-mail para contato">
+                            </div>
+                            <div class="input-container">
+                                <input id="userphoneregister" type="text" placeholder="Telefone para contato">
+                            </div>
+                            <div class="input-container">
+                                <input id="userdocumentregister" type="text" placeholder="Digite seu CPF">
+                            </div>
+                            <div class="input-container">
+                                <input id="userpasswordregister" type="password" placeholder="Senha de acesso">
+                            </div>
+                            <div class="input-container">
+                                <input id="userpasswordconfirm" type="password" placeholder="Confirme sua senha">
+                            </div>
+                            <div class="checkbox-container">
+                                <input id="checkbox" type="checkbox"> <span>Li e concordo com os <a href="#">termos de
+                                        uso</a></span>
+                            </div>
+                            <div class="input-submit">
+                                <input class="submit-button" type="submit" value="Finalizar">
+                            </div>
+                        </form>
                     </div>
-                    <div id="login-button">
-                        <button>Entrar</button>
-                    </div>
+                </div>
+            </Transition>
 
-                </div>
-                <div class="second-box">
-                    <div class="title">
-                        <h1>Crie a sua conta</h1>
-                    </div>
-                    <form action="" class="form-info">
-                        <div class="input-container">
-                            <input id="usernameregister" type="text" placeholder="Nome completo">
-                        </div>
-                        <div class="input-container">
-                            <input id="usermailregister" type="email" placeholder="E-mail para contato">
-                        </div>
-                        <div class="input-container">
-                            <input id="userphoneregister" type="text" placeholder="Telefone para contato">
-                        </div>
-                        <div class="input-container">
-                            <input id="userdocumentregister" type="text" placeholder="Digite seu CPF">
-                        </div>
-                        <div class="input-container">
-                            <input id="userpasswordregister" type="password" placeholder="Senha de acesso">
-                        </div>
-                        <div class="input-container">
-                            <input id="userpasswordconfirm" type="password" placeholder="Confirme sua senha">
-                        </div>
-                        <div class="checkbox-container">
-                            <input id="checkbox" type="checkbox"> <span>Li e concordo com os <a href="#">termos de
-                                    uso</a></span>
-                        </div>
-                        <div class="input-submit">
-                            <input class="submit-button" type="submit" value="Finalizar">
-                        </div>
-                    </form>
-                </div>
-            </div>
 
         </div>
     </body>
@@ -83,15 +87,24 @@
 
 export default {
     name: 'RegisterForm',
-    methods: {
-        async callRegister(e) {
-            const mainbox2 = document.querySelector('#main-box2');
-            const mainbox = document.querySelector('#main-box');
-            mainbox2.classList.add('hide-login');
-            mainbox.classList.add('show-register');
-            
+    data() {
+        return {
+            showL: Boolean,
+            showR: Boolean
         }
+    },
+    methods: {
+        showRegister() {
+            this.showL = false;
+            this.showR = true;
+        },
+        showLogin(){
+            this.showR = false;
+            this.showL=true;
+        }
+
     }
+    
 }
 
 
@@ -104,7 +117,7 @@ export default {
     display: flex;
     overflow: hidden;
     width: 1008px;
-    height: 609px;
+    height: 100%;
     position: relative;
 }
 
@@ -116,7 +129,7 @@ body {
     justify-content: center;
 }
 
-#main-box {
+#login-box {
     display: flex;
     justify-content: center;
     align-items: center;
@@ -132,7 +145,7 @@ body {
     position: relative;
 }
 
-#main-box2 {
+#register-box {
     display: flex;
     justify-content: center;
     align-items: center;
@@ -264,12 +277,19 @@ a {
     display: flex;
     justify-content: center;
 }
-.hide-login{
-    left: 1010px;
-}
-.show-register{
-    left: -1008px;
-    
+
+/*transição dos formularios*/
+.slide-fade-enter-active {
+    transition: all 0.5s cubic-bezier(1, 0.5, 0.8, 1)
 }
 
+.slide-fade-leave-active {
+    transition: all 0.5s cubic-bezier(1, 0.5, 0.8, 1);
+}
+
+.slide-fade-enter-from,
+.slide-fade-leave-to {
+    transform: translateY(600px);
+    opacity: 0;
+}
 </style>    

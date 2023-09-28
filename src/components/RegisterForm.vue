@@ -136,7 +136,7 @@ body {
     margin: 0 auto;
     border: 4px solid #F0C808;
     border-radius: 87px;
-    height: 600px;
+    height: 500px;
     width: 1000px;
     column-count: 2;
     margin: 0 auto;
@@ -152,7 +152,7 @@ body {
     margin: 0 auto;
     border: 4px solid #F0C808;
     border-radius: 87px;
-    height: 600px;
+    height: 500px;
     width: 1000px;
     column-count: 2;
     margin: 0 auto;

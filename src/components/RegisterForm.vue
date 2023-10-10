@@ -3,7 +3,7 @@
         <div id="container">
             <Transition name="slide-fade">
                 <div v-if="showL" id="login-box">
-                    <div class="first-box" >
+                    <div class="first-box">
                         <div class="title">
                             <h1>Junte-se a nossa legião de apostadores.</h1>
                         </div>
@@ -19,10 +19,11 @@
                         <form action="" class="form-info">
 
                             <div class="input-container">
-                                <input id="usermail" type="email" placeholder="E-mail para contato">
+                                <input id="login-mail" type="email" placeholder="E-mail de acesso" v-model="loginMail">
                             </div>
                             <div class="input-container">
-                                <input id="userpassword" type="password" placeholder="Senha de acesso">
+                                <input id="login-password" type="password" placeholder="Senha de acesso"
+                                    v-model="loginPassword">
                             </div>
                             <div class="input-submit">
                                 <input class="submit-button" type="submit" value="Entrar">
@@ -33,7 +34,7 @@
             </Transition>
             <Transition name="slide-fade">
                 <div v-if="showR" id="register-box">
-                    <div class="first-box" >
+                    <div class="first-box">
                         <div class="title">
                             <h1>Bem vindo de Volta!</h1>
                         </div>
@@ -47,32 +48,42 @@
                     <div class="second-box">
                         <div class="title">
                             <h1>Crie a sua conta</h1>
+                            
                         </div>
+                        <Message :msg="msgSuccessRegister" v-if="msgSuccessRegister" />
                         <form action="" class="form-info">
                             <div class="input-container">
-                                <input id="usernameregister" type="text" placeholder="Nome completo">
+                                <input id="usernameregister" type="text" placeholder="Nome completo"
+                                    v-model="registerFullName">
                             </div>
                             <div class="input-container">
-                                <input id="usermailregister" type="email" placeholder="E-mail para contato">
+                                <input id="usermailregister" type="email" placeholder="E-mail para contato"
+                                    v-model="registerMail">
                             </div>
                             <div class="input-container">
-                                <input id="userphoneregister" type="text" placeholder="Telefone para contato">
+                                <input id="userphoneregister" type="text" placeholder="Telefone para contato"
+                                    v-model="registerPhone">
                             </div>
                             <div class="input-container">
-                                <input id="userdocumentregister" type="text" placeholder="Digite seu CPF">
+                                <input id="userdocumentregister" type="text" placeholder="Digite seu CPF"
+                                    v-model="registerDocument">
                             </div>
                             <div class="input-container">
-                                <input id="userpasswordregister" type="password" placeholder="Senha de acesso">
+                                <input id="userpasswordregister" type="password" placeholder="Senha de acesso"
+                                    v-model="registerPassword">
                             </div>
                             <div class="input-container">
-                                <input id="userpasswordconfirm" type="password" placeholder="Confirme sua senha">
+                                <input id="userpasswordconfirm" type="password" placeholder="Confirme sua senha"
+                                    v-model="registerConfirmPassword">
                             </div>
+                            <Message id="msg" :msg="msgError" v-show="msgError" />
                             <div class="checkbox-container">
-                                <input id="checkbox" type="checkbox"> <span>Li e concordo com os <a href="#">termos de
+                                <input id="checkbox" type="checkbox" v-model="registerTerms"> <span>Li e concordo com os <a
+                                        href="#">termos de
                                         uso</a></span>
                             </div>
                             <div class="input-submit">
-                                <input class="submit-button" type="submit" value="Finalizar">
+                                <input class="submit-button" @click="registerUser" type="submit" value="Finalizar">
                             </div>
                         </form>
                     </div>
@@ -83,14 +94,31 @@
         </div>
     </body>
 </template>
+
 <script>
+import Message from './Message.vue';
 
 export default {
     name: 'RegisterForm',
     data() {
         return {
             showL: Boolean,
-            showR: Boolean
+            showR: Boolean,
+            //login fields
+            loginMail: null,
+            loginPassword: null,
+            //register fields
+            registerFullName: null,
+            registerMail: null,
+            registerPhone: null,
+            registerDocument: null,
+            registerPassword: null,
+            registerConfirmPassword: null,
+            registerTerms: null,
+            //message fields
+            msgError: null,
+            msgSuccessRegister: null
+
         }
     },
     methods: {
@@ -98,13 +126,66 @@ export default {
             this.showL = false;
             this.showR = true;
         },
-        showLogin(){
+        showLogin() {
             this.showR = false;
-            this.showL=true;
-        }
+            this.showL = true;
+        },
+        //registerMethods
+        async registerUser(e) {
+            e.preventDefault();
+            if (this.registerPassword != this.registerConfirmPassword) {
+                this.msgError = "As senhas digitadas não conferem!"
+                setTimeout(() => {
+                    this.msgError = "";
+                }, 2500);
 
+            } else {
+                const registerInfo = {
+                    id: null,
+                    name: this.registerFullName,
+                    document: this.registerDocument,
+                    email: this.registerMail,
+                    password: this.registerPassword,
+                    phone: this.registerPhone,
+                    userType: 3
+                }
+                //create json with fields
+                const registerInfoJson = JSON.stringify(registerInfo);
+                //creating the request with the post method
+
+                const request = await fetch("http://localhost:8081/User", {
+                    method: "POST",
+                    headers: {
+                        "Acept": "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: registerInfoJson
+                })
+                    .catch(function (res) {
+                        alert("Ops... " +
+                            "\n" +
+                            "Nossos serviços estão em manutenção, tente novamente mais tarde.")
+                    });
+
+                this.msgSuccessRegister = "Cadastro realizado com sucesso!"
+                setTimeout(() => {
+                    this.msgSuccessRegister = "";
+                }, 2500);
+
+            this.registerFullName = "",
+            this.registerMail =  "",
+            this.registerPhone =  "",
+            this.registerDocument =  "",
+            this.registerPassword =  "",
+            this.registerConfirmPassword =  ""
+
+            }
+        }
+    },
+    components: {
+        Message
     }
-    
+
 }
 
 
@@ -113,12 +194,15 @@ export default {
 </script>
 
 <style scoped>
+* {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
 #container {
     display: flex;
     overflow: hidden;
     width: 1008px;
-    height: 100%;
-    position: relative;
+    height: 620px;
 }
 
 body {
@@ -143,6 +227,7 @@ body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     font-weight: bold;
     position: relative;
+    transition: .5s;
 }
 
 #register-box {
@@ -159,6 +244,9 @@ body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     font-weight: bold;
     position: relative;
+    transition: .5s;
+
+
 }
 
 .first-box {
@@ -173,6 +261,9 @@ body {
     border-bottom-left-radius: 87px;
     width: 500px;
     color: #F0C808;
+    box-shadow: inset 1px 1px 50px #013141;
+
+
 
 }
 
@@ -226,6 +317,9 @@ body {
     border-left: none;
     border-right: none;
     border-bottom: solid 2px black;
+    font-size: 16px;
+    font-weight: bolder;
+    color: #013141;
 }
 
 .input-submit {
@@ -278,6 +372,9 @@ a {
     justify-content: center;
 }
 
+/*componente Message*/
+
+
 /*transição dos formularios*/
 .slide-fade-enter-active {
     transition: all 0.5s cubic-bezier(1, 0.5, 0.8, 1)
@@ -289,7 +386,8 @@ a {
 
 .slide-fade-enter-from,
 .slide-fade-leave-to {
-    transform: translateY(600px);
+    transform: translateX(600px);
     opacity: 0;
+
 }
 </style>    

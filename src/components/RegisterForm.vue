@@ -1,10 +1,18 @@
+
 <template>
-  <div class="register-success-box">
+  <div class="register-message-box">
     <Transition name="bounce">
-      <Message :msg="msgSuccessRegister" v-if="msgSuccessRegister" />
+      <Message id="msg" :msg="msg" v-show="msg" />
     </Transition>
   </div>
+
   <body>
+    <dialog id="terms">
+      <Terms />
+    </dialog>
+
+      <EmailValidationCode id = "email-validation-dialog"/>
+
     <div id="container">
       <Transition name="slide-fade">
         <div v-if="showL" id="login-box">
@@ -22,20 +30,10 @@
             </div>
             <form action="" class="form-info">
               <div class="input-container">
-                <input
-                  id="login-mail"
-                  type="email"
-                  placeholder="E-mail de acesso"
-                  v-model="loginMail"
-                />
+                <input id="login-mail" type="email" placeholder="E-mail de acesso" v-model="loginMail" />
               </div>
               <div class="input-container">
-                <input
-                  id="login-password"
-                  type="password"
-                  placeholder="Senha de acesso"
-                  v-model="loginPassword"
-                />
+                <input id="login-password" type="password" placeholder="Senha de acesso" v-model="loginPassword" />
               </div>
               <div class="input-submit">
                 <input class="submit-button" type="submit" value="Entrar" />
@@ -66,66 +64,36 @@
             </div>
             <form action="" class="form-info">
               <div class="input-container">
-                <input
-                  id="usernameregister"
-                  type="text"
-                  placeholder="Nome completo"
-                  v-model="registerFullName" required
-                />
+                <input id="usernameregister" type="text" placeholder="Nome completo" v-model="registerFullName"
+                  required />
               </div>
               <div class="input-container">
-                <input
-                  id="usermailregister"
-                  type="email"
-                  placeholder="E-mail para contato"
-                  v-model="registerMail" required
-                />
+                <input id="usermailregister" type="email" placeholder="E-mail para contato" v-model="registerMail"
+                  required />
               </div>
               <div class="input-container">
-                <input
-                  id="userphoneregister"
-                  type="text"
-                  placeholder="Telefone para contato"
-                  v-mask="'##-##-##'"
-                  v-model="registerPhone" 
-                />
+                <input id="userphoneregister" type="text" placeholder="Telefone para contato" v-mask="['(##) #####-####']"
+                  v-model="registerPhone" />
               </div>
               <div class="input-container">
-                <input
-                  id="userdocumentregister"
-                  type="text"
-                  placeholder="Digite seu CPF"
-                  v-model="registerDocument"
-                />
+                <input id="userdocumentregister" type="text" placeholder="Digite seu CPF" v-model="registerDocument"
+                  v-mask="['###.###.###-##']" />
               </div>
               <div class="input-container">
-                <input
-                  id="userpasswordregister"
-                  type="password"
-                  placeholder="Senha de acesso"
-                  v-model="registerPassword"
-                />
+                <input @focusin="showPassword" @focusout="hidePassword" id="userpasswordregister" type="password"
+                  placeholder="Senha de acesso" v-model="registerPassword" />
               </div>
               <div class="input-container">
-                <input
-                  id="userpasswordconfirm"
-                  type="password"
-                  placeholder="Confirme sua senha"
-                  v-model="registerConfirmPassword"
-                />
+                <input id="userpasswordconfirm" type="password" placeholder="Confirme sua senha"
+                  v-model="registerConfirmPassword" />
               </div>
-              <Message id="msg" :msg="msgError" v-show="msgError" />
               <div class="checkbox-container">
                 <input id="checkbox" type="checkbox" v-model="registerTerms" />
-                <span>Li e concordo com os <a href="#">termos de uso</a></span>
+                <span><button id="button-terms" @click="terms">Eu li e aceito os <a href="#">termos de
+                      uso</a></button></span>
               </div>
               <div class="input-submit">
-                <input
-                  class="submit-button"
-                  @click="registerUser"
-                  type="submit"
-                  value="Finalizar"
-                />
+                <input class="submit-button" @click="sendEmailValidationCode" type="submit" value="Próximo" />
               </div>
             </form>
           </div>
@@ -137,8 +105,13 @@
 
 <script>
 import Message from "./Message.vue";
+import { mask } from "vue-the-mask";
+import Terms from "./Terms.vue"
+import EmailValidationCode from "./EmailValidationCode.vue";
+
 
 export default {
+
   name: "RegisterForm",
   data() {
     return {
@@ -156,11 +129,22 @@ export default {
       registerConfirmPassword: null,
       registerTerms: null,
       //message fields
-      msgError: null,
-      msgSuccessRegister: null,
+      msg: null
     };
   },
+  /**
+   * diretivas utilizadas dentro do documento html, essa diretiva foi importada
+   */
+  directives: {
+    mask
+  },
+  /**
+   * Métodos criados dentro do documento
+   */
   methods: {
+    /**
+     * Métodos para a transição do login e do registro
+     */
     showRegister() {
       this.showL = false;
       this.showR = true;
@@ -169,63 +153,154 @@ export default {
       this.showR = false;
       this.showL = true;
     },
-    //registerMethods
-    async registerUser(e) {
-      e.preventDefault();
-      if (this.registerPassword != this.registerConfirmPassword) {
-        this.msgError = "As senhas digitadas não conferem!";
-        setTimeout(() => {
-          this.msgError = "";
-        }, 2500);
-      } else {
-        const registerInfo = {
-          id: null,
-          name: this.registerFullName,
-          document: this.registerDocument,
-          email: this.registerMail,
-          password: this.registerPassword,
-          phone: this.registerPhone,
-          userType: 3,
-        };
-        //create json with fields
-        const registerInfoJson = JSON.stringify(registerInfo);
-        //creating the request with the post method
+    /**
+     * método para fechar o dialog aberto da validação do email através do botão
+     */
+    closeMailValidationDialog(){
+      const dialog = document.querySelector("#email-validation-dialog");
+      const button = document.querySelector("#email-validation-dialog button")
 
-        const request = await fetch("http://localhost:8081/User", {
-          method: "POST",
-          headers: {
-            Acept: "application/json",
-            "Content-Type": "application/json",
-          },
-          body: registerInfoJson,
-        }).catch(function (res) {
-          alert(
-            "Ops... " +
-              "\n" +
-              "Nossos serviços estão em manutenção, tente novamente mais tarde."
-          );
-        });
-
-        this.msgSuccessRegister = "Cadastro realizado com sucesso!";
-        setTimeout(() => {
-          this.msgSuccessRegister = "";
-        }, 3000);
-        setTimeout(() => {
-            this.showLogin();
-        }, 2000);
-
-        (this.registerFullName = ""),
-          (this.registerMail = ""),
-          (this.registerPhone = ""),
-          (this.registerDocument = ""),
-          (this.registerPassword = ""),
-          (this.registerConfirmPassword = "");
+      button.onClick = function(){
+        dialog.close();
       }
     },
+    /**
+     * Fim dos métodos para transição de login e registro
+     */
+    /**
+     * Método para realizar a inserção de um usuario dentro do sistema
+     * 
+     * @param {} e 
+     */
+    async registerUser(e) {
+      /***
+       * User register with
+       */
+      e.preventDefault();
+      //creating the fields
+      const registerInfo = {
+        id: null,
+        name: this.registerFullName,
+        document: this.registerDocument,
+        email: this.registerMail,
+        password: this.registerPassword,
+        confirmPassword: this.registerConfirmPassword,
+        phone: this.registerPhone,
+        validEmail: boolean,
+        userType: 3,
+      };
+      //create json with fields
+      const registerInfoJson = JSON.stringify(registerInfo);
+      //creating the request with the post method
+      const request = await fetch("http://localhost:8081/User", {
+        method: "POST",
+        headers: {
+          Acept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: registerInfoJson,
+      }).then((res) => {
+        if (res.status === 404) {
+          return res.json().then((data) => {
+            const error = data;
+            this.msg = error;
+            setTimeout(() => {
+              this.msg = "";
+
+            }, 8000);
+          })
+        }
+      })
+    },
+    /**
+     * Método para o envio do código de validação do e-mail do usuário * 
+     * @param {*} e 
+     */
+    async sendEmailValidationCode(e) {
+
+      e.preventDefault();
+
+      //montando o e-mail
+
+      const emailInfo = {
+        mailTo: this.registerMail
+      };
+
+      //transformando os dados em um json para enviar no cabeçalho da requisição para a api
+
+      const emailInfoJson = JSON.stringify(emailInfo);
+
+      const request = await fetch("http://localhost:8081/Email", {
+        method: "POST",
+        headers: {
+          Acept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: emailInfoJson,
+      }).then((res) => {
+        if (res.status === 404) {
+
+          return res.json().then((data) => {
+
+            const error = data;
+            this.msg = error;
+            setTimeout(() => {
+              this.msg = "";
+
+            }, 8000);
+
+          })
+
+        } else {
+          if (res.status === 201) {
+
+            //mostrar o aviso do envio do e-mail para validação
+            this.msg = "Um código de verificação foi enviado para:" + this.registerMail
+            setTimeout(() => {
+              this.msg = "";
+            }, 5000);
+
+            //abrindo o dialog para inserir o código de verificação
+            const emailValidationDialog = document.querySelector("#email-validation-dialog");
+            emailValidationDialog.showModal();
+
+          }
+        }
+      })
+
+    },
+    /**
+     * Função para mostrar o dialog dos termos de uso
+     * @param {} e 
+     */
+    async terms(e) {
+      e.preventDefault();
+      const terms = document.querySelector("#terms");
+      terms.showModal();
+    },
+    /**
+     * função para mostrar a senha do usuario
+     */
+    async showPassword() {
+      const password = document.getElementById("userpasswordregister");
+      password.setAttribute('type', 'text');
+
+    },
+    /**
+     * Função para ocultar a senha do usuario
+     */
+    async hidePassword() {
+      const password = document.getElementById("userpasswordregister");
+      password.setAttribute('type', 'password');
+    }
   },
+
   components: {
     Message,
+    Terms,
+    EmailValidationCode
   },
+
 };
 </script>
 
@@ -239,12 +314,22 @@ export default {
   overflow: hidden;
   width: 1008px;
   height: 620px;
+  position: relative;
 }
+
+dialog {
+  width: 60%;
+  height: 60%;
+  opacity: 93%;
+  border: 4px #013141 solid;
+}
+
 
 body {
   width: 100%;
-  height: 100%;
+  height: 90vh;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
 }
@@ -403,11 +488,20 @@ a {
   justify-content: center;
 }
 
-.register-success-box {
+.register-message-box {
   display: flex;
   justify-content: center;
   align-items: center;
 }
+
+#button-terms {
+  background-color: transparent;
+  font-weight: bold;
+  font-size: 16px;
+  border: none;
+  cursor: pointer;
+}
+
 /*componente Message*/
 
 /*transição dos formularios*/
@@ -424,20 +518,22 @@ a {
   transform: translateX(600px);
   opacity: 0;
 }
-/*cadastro realizado com sucesso com animação*/
+
+/*Componente message*/
 .bounce-enter-active {
   animation: bounce-in 0.5s;
 }
-.bounce-leave-active {
-  animation: bounce-in 0.5s reverse;
-}
+
+
 @keyframes bounce-in {
   0% {
     transform: scale(0);
   }
+
   50% {
     transform: scale(1.25);
   }
+
   100% {
     transform: scale(1);
   }

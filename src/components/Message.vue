@@ -1,6 +1,6 @@
 <template>
     <div class="message-container">
-        <p>{{ msg }}</p>
+        <p><strong>{{ msg }}</strong></p>
     </div>
 </template>
 
@@ -8,7 +8,7 @@
 export default {
     name: 'Message',
     props: {
-        msg: String
+        msg: String,
     }
 };
 
@@ -17,14 +17,15 @@ export default {
 <style scoped>
 .message-container {
     color: #013141;
-    background-color:#B8DAFF ;
+    background-color:#e0b64c ;
     border: 2px solid #086788;
     border-radius: 20px;
-    width: 300px;
-    height: 40px;
+    width: auto;
+    height: auto;
     text-align: center;
     justify-content: center;
     display: flex;  
+    padding: 5px 5px 2px 2px
 }
 
 </style>

@@ -6,12 +6,13 @@
     </Transition>
   </div>
 
+
+
   <body>
+
     <dialog id="terms">
       <Terms />
     </dialog>
-
-      <EmailValidationCode id = "email-validation-dialog"/>
 
     <div id="container">
       <Transition name="slide-fade">
@@ -20,7 +21,7 @@
             <div class="title">
               <h1>Junte-se a nossa legião de apostadores.</h1>
             </div>
-            <div id="login-button">
+            <div class="button-redirect">
               <button @click="showRegister">Cadastrar-se</button>
             </div>
           </div>
@@ -54,7 +55,7 @@
                 clicando no botão abaixo.
               </p>
             </div>
-            <div id="login-button">
+            <div class="button-redirect">
               <button @click="showLogin">Entrar</button>
             </div>
           </div>
@@ -72,33 +73,56 @@
                   required />
               </div>
               <div class="input-container">
-                <input id="userphoneregister" type="text" placeholder="Telefone para contato" v-mask="['(##) #####-####']"
+                <input required id="userphoneregister" type="text" placeholder="Telefone para contato" v-mask="['(##) #####-####']"
                   v-model="registerPhone" />
               </div>
               <div class="input-container">
-                <input id="userdocumentregister" type="text" placeholder="Digite seu CPF" v-model="registerDocument"
+                <input required id="userdocumentregister" type="text" placeholder="Digite seu CPF" v-model="registerDocument"
                   v-mask="['###.###.###-##']" />
               </div>
               <div class="input-container">
-                <input @focusin="showPassword" @focusout="hidePassword" id="userpasswordregister" type="password"
+                <input required @focusin="showPassword" @focusout="hidePassword" id="userpasswordregister" type="password"
                   placeholder="Senha de acesso" v-model="registerPassword" />
               </div>
               <div class="input-container">
-                <input id="userpasswordconfirm" type="password" placeholder="Confirme sua senha"
+                <input required id="userpasswordconfirm" type="password" placeholder="Confirme sua senha"
                   v-model="registerConfirmPassword" />
               </div>
               <div class="checkbox-container">
-                <input id="checkbox" type="checkbox" v-model="registerTerms" />
-                <span><button id="button-terms" @click="terms">Eu li e aceito os <a href="#">termos de
+                <input required id="checkbox" type="checkbox" v-model="registerTerms" />
+                <span><button id="button-terms" @click="showTerms">Eu li e aceito os <a href="#">termos de
                       uso</a></button></span>
               </div>
               <div class="input-submit">
-                <input class="submit-button" @click="sendEmailValidationCode" type="submit" value="Próximo" />
+                <input class="submit-button" @click="registerUser" type="submit" value="Próximo" />
               </div>
             </form>
           </div>
         </div>
       </Transition>
+      <div v-if="showEmailValidation" id="validation-box">
+        <div class="first-box">
+          <div class="title">
+            <h1>Validação do E-mail.</h1>
+          </div>
+          <div class="button-redirect">
+            <button @click="showRegister">Voltar</button>
+          </div>
+        </div>
+        <div class="second-box">
+          <div class="subtitle">
+            <p>Caso não tenha recebido o código, volte ao registro e verifique seu e-mail</p>
+          </div>
+          <form action="" class="form-info">
+            <div class="input-container">
+              <input required placeholder="Digite o código de verificação" type="text" id="verificationCode" v-model="registerVerificationCode">
+            </div>
+            <div class="input-submit">
+              <input type="submit" value="Finalizar" class="submit-button">
+            </div>
+          </form>
+        </div>
+      </div>
     </div>
   </body>
 </template>
@@ -107,7 +131,6 @@
 import Message from "./Message.vue";
 import { mask } from "vue-the-mask";
 import Terms from "./Terms.vue"
-import EmailValidationCode from "./EmailValidationCode.vue";
 
 
 export default {
@@ -117,6 +140,7 @@ export default {
     return {
       showL: Boolean,
       showR: Boolean,
+      showEmailValidation: Boolean,
       //login fields
       loginMail: null,
       loginPassword: null,
@@ -128,6 +152,7 @@ export default {
       registerPassword: null,
       registerConfirmPassword: null,
       registerTerms: null,
+      registerVerificationCode: null,
       //message fields
       msg: null
     };
@@ -147,26 +172,30 @@ export default {
      */
     showRegister() {
       this.showL = false;
+      this.showEmailValidation = false;
       this.showR = true;
     },
     showLogin() {
       this.showR = false;
+      this.showEmailValidation = false;
       this.showL = true;
     },
-    /**
-     * método para fechar o dialog aberto da validação do email através do botão
-     */
-    closeMailValidationDialog(){
-      const dialog = document.querySelector("#email-validation-dialog");
-      const button = document.querySelector("#email-validation-dialog button")
-
-      button.onClick = function(){
-        dialog.close();
-      }
+    showEmailValidationView() {
+      this.showR = false;
+      this.showEmailValidation = true;
+      this.showL = false;
     },
     /**
      * Fim dos métodos para transição de login e registro
      */
+    /***
+     * método para abrir a janela de termos
+     */
+  async showTerms(e){
+      e.preventDefault()
+      const dialog = document.querySelector("#terms");
+      dialog.showModal();
+    },
     /**
      * Método para realizar a inserção de um usuario dentro do sistema
      * 
@@ -186,7 +215,6 @@ export default {
         password: this.registerPassword,
         confirmPassword: this.registerConfirmPassword,
         phone: this.registerPhone,
-        validEmail: boolean,
         userType: 3,
       };
       //create json with fields
@@ -209,6 +237,10 @@ export default {
 
             }, 8000);
           })
+        }else{
+          if(res.status === 201){
+            this.sendEmailValidationCode();
+          }
         }
       })
     },
@@ -218,7 +250,6 @@ export default {
      */
     async sendEmailValidationCode(e) {
 
-      e.preventDefault();
 
       //montando o e-mail
 
@@ -253,16 +284,17 @@ export default {
 
         } else {
           if (res.status === 201) {
-
+            
+            this.showEmailValidationView()
+            
             //mostrar o aviso do envio do e-mail para validação
             this.msg = "Um código de verificação foi enviado para:" + this.registerMail
             setTimeout(() => {
               this.msg = "";
             }, 5000);
 
-            //abrindo o dialog para inserir o código de verificação
-            const emailValidationDialog = document.querySelector("#email-validation-dialog");
-            emailValidationDialog.showModal();
+
+
 
           }
         }
@@ -273,11 +305,6 @@ export default {
      * Função para mostrar o dialog dos termos de uso
      * @param {} e 
      */
-    async terms(e) {
-      e.preventDefault();
-      const terms = document.querySelector("#terms");
-      terms.showModal();
-    },
     /**
      * função para mostrar a senha do usuario
      */
@@ -298,7 +325,6 @@ export default {
   components: {
     Message,
     Terms,
-    EmailValidationCode
   },
 
 };
@@ -332,6 +358,7 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  margin: 0;
 }
 
 #login-box {
@@ -367,6 +394,26 @@ body {
   position: relative;
   transition: 0.5s;
 }
+#validation-box {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0 auto;
+  border: 4px solid #f0c808;
+  border-radius: 87px;
+  height: 500px;
+  width: 1000px;
+  column-count: 2;
+  margin: 0 auto;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  font-weight: bold;
+  position: relative;
+  transition: 0.5s;
+}
+.subtitle{
+  padding-top: 0px;
+
+}
 
 .first-box {
   margin: 0 auto;
@@ -397,13 +444,13 @@ body {
   padding-right: 15px;
 }
 
-#login-button {
+.button-redirect {
   padding-top: 30px;
   align-items: center;
   justify-content: center;
 }
 
-#login-button button {
+.button-redirect button {
   font-weight: bold;
   font-size: 16px;
   width: 120px;
@@ -415,7 +462,7 @@ body {
   transition: 0.5s;
 }
 
-#login-button button:hover {
+.button-redirect button:hover {
   cursor: pointer;
   background-color: #ffff;
 }
